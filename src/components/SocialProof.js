@@ -1,7 +1,7 @@
-import { FunnelElement } from "./FunnelElement";
+import { AppElement } from "@buyerjourney/bj-core";
 import { toast } from "bulma-toast";
 
-export class SocialProof extends FunnelElement {
+export class SocialProof extends AppElement {
 
     #default = {
         visitorColor:"hsl(48, 100%, 67%)",
