@@ -1,24 +1,54 @@
 import { AppElement } from "@buyerjourney/bj-core";
+import { icon } from "@fortawesome/fontawesome-svg-core";
+import { faCartPlus, faTruck} from '@fortawesome/free-solid-svg-icons';
 import { toast } from "bulma-toast";
 
 export class SocialProof extends AppElement {
 
     #default = {
-        visitorColor:"hsl(48, 100%, 67%)",
-        visitorBackground:"purple",
-        webinarColor:"hsl(48, 100%, 67%)",
-        webinarBackground:"violet",
+        position:"top-right",
+        type:'',
+        dismissible:false,
+        duration:3000,
         animateIn:"backInUp",
         animateOut:"backOutRight" ,
         visitors:{
-            es:"visitantes están comprando en línea.",
-            en:"visitors are buying online.",
-            fr:"visiteurs font des achats en ligne."
+            type:'',
+            color:"has-text-white",
+            background:"has-background-info-dark",
+            text:{
+                es:"visitantes están comprando en línea.",
+                en:"visitors are buying online.",
+                fr:"visiteurs font des achats en ligne."
+                }
         },
-        purchase:{},
-        webinar:{},
-        registered:{},
-        signup:{},
+        purchase:{
+            color:"has-text-white",
+            background:"has-background-warning-dark",
+            text:{
+                es:"En",
+                en:"At",
+                fr:"Chez"
+                },
+            text2:{
+                es:"compraron:",
+                en:"they bought:",
+                fr:", ils ont acheté:"
+                }
+            
+        },
+        event:{
+            color:"has-text-white",
+            background:"has-background-primary-dark"
+        },
+        webinar:{
+            color:"has-text-white",
+            background:"has-background-danger-dark"
+        },
+        course:{
+            color:"has-text-white",
+            background:"has-background-link-dark"
+        },
         m:{
             es:"Hace un minuto.",
             en:"A minute ago.",
@@ -43,121 +73,157 @@ export class SocialProof extends AppElement {
         ds:{
             es:"Hace {} días.",
             en:"{} days ago.",
-            fr:"il y a {} jours."}
+            fr:"il y a {} jours."},
+        items : [],
+        context:{
+            lang:"en"
+        }
         };
 
     constructor(props={}){
         super();
         this.state =this.initState(this.#default,props);
         this.setStyles();
-        this.getProofs();
+    }
+
+
+
+    #getProof(src){
+        fetch(src)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error when making the request');
+                  }
+                  return response.json();
+            })
+            .then(data => {
+                this.state.items = [];
+                data.forEach(proof => {                    
+                    let indicator = '';
+                    let content = '';
+                    let type = '';
+                    let color = '';
+                    let background = ''
+                    let when = this.#getDT(proof.delta);
+                    if (proof.type==='visitors'){
+                        indicator = icon(faCartPlus, {classes: [this.state.visitors.color]}).html[0];
+                        content = `<p><b>${proof.count} </b>${this.state.visitors.text[this.state.context.lang]}<p>                                    
+                                    <h3>${this.#getDT(proof.delta)}</h3>`
+                        type = this.state.visitors.type;
+                        color = this.state.visitors.color;
+                        background = this.state.visitors.background;
+                    }else if (proof.type==='purchase'){
+                        indicator = icon(faTruck, {classes: [this.state.purchase.color]}).html[0];
+                        content = `
+                            <h1>${this.state.purchase.text[this.state.context.lang]} <b>${proof.place}</b> ${this.state.purchase.text2[this.state.context.lang]}</h1>
+                            <h2>${proof.count} <b>${proof.name}.</b></h2>
+                            <h3>${when}</h3>
+                        `
+                        type = this.state.purchase.type;
+                        color = this.state.purchase.color;
+                        background = this.state.purchase.background;
+                    }else if (proof.type==='webinar'){
+                        indicator = `<p>${proof.count}<p>`;
+                        content = `<p>People ${proof.name}<p>
+                            <h3>${this.#getDT(proof.delta)}</h3>`
+                        type = this.state.webinar.type;
+                        color = this.state.webinar.color;
+                        background = this.state.webinar.background;
+                    }else if (proof.type==='course'){
+                        indicator = `<p>${proof.count}<p>`;
+                        content = `<p>People registered for this course.<p>
+                            <h3>${this.#getDT(proof.delta)}</h3>`
+                        type = this.state.course.type;
+                        color = this.state.course.color;
+                        background = this.state.course.background;
+                    }else if (proof.type==='event'){
+                        indicator = `<p>${proof.count}<p>`;
+                        content = `<p>People registered for this sevent.<p>
+                            <h3>${this.#getDT(proof.delta)}</h3>`
+                        type = this.state.event.type;
+                        color = this.state.event.color;
+                        background = this.state.event.background;
+                    }
+                    let message = /*html*/`
+                    <div class="social-proof">
+                        <div class="social-proof-indicator ${color} ${background}">
+                            ${indicator}
+                        </div>
+                        <div class="social-proof-content has-text-dark has-background-light">
+                            ${content}
+                        </div>
+                    </div>
+                    `
+                    this.state.items.push(message);                   
+                });
+              })
+              .catch(error => {
+                console.error('There was a problem with the request', error);
+              });
+    }
+
+
+
+    loadProofs(){
+        let src = this.getAttribute("src");
+        if (src!=null){
+            this.#getProof(src)
+        }else console.error(`The src attribute has not been set on the social-proof element with id "${this.id}"`)
         
     }
 
-    getProofs(){
-        let dT = Math.floor(Math.random() * 57000) + 3000;
-        this.state.proofs.forEach(proof => {
-            setTimeout(() => {
-                let indicator = ``;
-                let content = ``;
-                let color = ``;
-                let tag = ``;
-                let tag2 = ``;
-                if (proof.type==='visitors'){
-                    indicator = this.cart
-                    content = `<h4><b>${proof.count} </b>visitors are buying online.<h4>`
-                    tag = `white`
-                    tag2 = `purple`
-                    color = `style="fill:${tag}; background-color:${tag2};"`
-                }else if (proof.type==='purchase'){
-                    let when = this.getDT(proof.date);
-                    indicator = `<img src="${proof.imageUrl}" alt="${proof.product}">`;
-                    content = `
-                        <h1><b>${proof.name}</b> (${proof.city}).</h1>
-                        <h2>Purchased <b>${proof.product}.</b></h2>
-                        <h3>12 minutes ago.</h3>
-                    `
-                    color = ``
-                }else if (proof.type==='webinar'){
-                    indicator = `<p>${proof.count}<p>`;
-                    content = `<p>People registered for this webinar.<p>`
-                    tag = `blue`;
-                    tag2 = `green`;
-                    color = `style="color:${tag}; background-color:${tag2};"`
-                }else if (proof.type==='registered'){
-                    let when = this.getDT(proof.date);
-                    indicator = `<img src="${proof.imageUrl}" alt="${proof.product}">`;
-                    content = `
-                        <h1><b>${proof.name}</b> (${proof.city}).</h1>
-                        <h2>Registered for this webinar</h2>
-                        <h3>12 minutes ago.</h3>
-                    `
-                    color = ``
-
-                }else {
-                    let when = this.getDT(proof.date);
-                    indicator = `<img src="${proof.imageUrl}" alt="${proof.product}">`;
-                    content = `
-                    <h1><b>${proof.name}</b> (${proof.city}).</h1>
-                    <h2>Signed up for <b>${proof.product}.</b></h2>
-                    <h3>12 minutes ago.</h3>
-                `
-                }
-                let message = /*html*/`
-                    <div class="social-proof">
-                    <div class="social-proof-indicator" ${color}>
-                        ${indicator}
-                    </div>
-                    <div class="social-proof-content">
-                        ${content}
-                    </div>
-                </div>
-                `
-                toast({
-                    "duration": 3000,
-                    message: message,
-                    type: null,
-                    extraClasses: 'social-proof-wrapper',
-                    animate: { in: this.attachInternals.animateIn, out: this.state.animateOut },
-                    })
-
-            }, dT);
-            dT += Math.floor(Math.random() * 30000);
-        })        
+    showToast(){
+        if (this.state.items.length>0){
+            let message = this.state.items.shift();
+            toast({
+                duration:3000,
+                type:this.state.type,
+                position:this.state.position,
+                dismissible:this.state.dismissible,
+                message: message,
+                extraClasses: 'social-proof-wrapper',
+                animate: { in: this.state.animateIn, out: this.state.animateOut },
+                });
+        }
     }
 
-    getDT(date){
-        let i = 0;
-        let when =  new Date(date);
-        let delta = (Date.now() - when)/60000;
-        let res = ''
+    #getDT(delta){
+        let message = '';
         if (delta < 60){
-            i = parseInt(delta);
-            console.log('Minutos', i)
+            if (delta == 1){
+                message = this.state.m[this.state.context.lang]
+            }else{
+                message = this.state.ms[this.state.context.lang].replace("{}", delta);
+            }
         }else if (delta < 1440){
-            i = parseInt(delta/60);
-            console.log('Horas', i)
+            if (delta == 60){
+                message = this.state.h[this.state.context.lang]
+            }else{
+                message = this.state.hs[this.state.context.lang].replace("{}", delta);
+            }
         }else{
-            i = parseInt(delta/1440)
-            console.log('Dias', i)   
+            if (delta == 1440){
+                message = this.state.d[this.state.context.lang]
+            }else{
+                message = this.state.ds[this.state.context.lang].replace("{}", delta);
+            }
         }
-        return 5
+        return message;
     }
 
    
     socialProofStyles = /* css */ `
     .social-proof-wrapper {padding: 0.25rem !important;box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;}
-    .social-proof { display:flex; width: 250px; background-color: white;  color:#1f1f24; }
+    .social-proof { display:flex; width: 250px;}
     .social-proof-indicator { display: inline-flex; flex-direction: column; align-items: flex-start; width: 50px; height: 50px;  display: inline-flex; flex-direction: column; align-items: flex-start}
     .social-proof-indicator img { width: 48px; height: 48px; }
     .social-proof-indicator svg { margin: auto auto; display: block;}
     .social-proof-indicator p { font-size: 20; font-weight: bold; margin: auto; padding-top: 15px; }
-    .social-proof-content { flex-grow: 1; display: inline-flex; flex-direction: column; align-items: flex-start; height: 50px; color: hsl(0, 0%, 21%); padding-left: 5px;}
+    .social-proof-content { flex-grow: 1; display: inline-flex; flex-direction: column; align-items: flex-start; height: 50px; padding-left: 5px; width:200px;}
     .social-proof-content h1 {font-size: 12px;}
     .social-proof-content h2 {font-size: 10px;}
-    .social-proof-content h3 {font-size: 9px;}
-    .social-proof-content h4 {font-size: 14px; text-align: left; padding-top: 16px;}
-    .social-proof-content p { padding-left: 5px; padding-top: 5px; font-size: 14px; text-align: left;}
+    .social-proof-content h3 {font-size: 9px; text-align:right;}
+    .social-proof-content p { padding-left: 5px; padding-top: 5px; font-size: 14px;}
         `;
 
     setStyles(){
@@ -165,18 +231,11 @@ export class SocialProof extends AppElement {
         socialProofStyles.innerText = this.socialProofStyles;
         document.head.appendChild(socialProofStyles)
     }
-    
-    cart = `<svg xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 0 576 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96zM252 160c0 11 9 20 20 20h44v44c0 11 9 20 20 20s20-9 20-20V180h44c11 0 20-9 20-20s-9-20-20-20H356V96c0-11-9-20-20-20s-20 9-20 20v44H272c-11 0-20 9-20 20z"/></svg>`;
+     
 
-    
-
-    registeredCount = `<p>22,235<p>`;
-
-    registered =  /* html */ `
-    <p>People registered for this webinar.<p>
-    `;
-
-   
+    render(){
+        this.loadProofs();
+    }
    
 
 }
