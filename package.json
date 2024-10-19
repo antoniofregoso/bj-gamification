@@ -1,5 +1,5 @@
 {
-  "name": "bj-gamification",
+  "name": "@buyerjourney/bj-gamification",
   "version": "0.5.0",
   "description": "",
   "main": "src/index.js",
