@@ -94,20 +94,14 @@ export class ActivationModal extends AppElement {
         }
     }
 
-    static get observedAttributes() {
-        return ["active"];
-        }
-
-    attributeChangedCallback(name, old, now) {
-       console.log(name, old, now)
-          }
 
     handleEvent(event) {
         let mailOk = false;
         let activationForm = this.querySelector("form")
         if (event.type === "click"&&event.target.id==='activation-cancel'){
+            this.state.data = [];
             const activation = new CustomEvent(this.state.eventName,{
-                detail:{click:event.target.id},
+                detail:{source:'activation-cancel'},
                 bubbles: true,
                 composed: true
             });
@@ -165,8 +159,9 @@ export class ActivationModal extends AppElement {
                 let dataEmail = activationForm.querySelector('#activation-email')
                 data.name = dataName .value;
                 data.email = dataEmail.value;
+                this.state.data = data;
                 const activation = new CustomEvent(this.state.eventName,{
-                    detail:{submit:this.id, activation:data},
+                    detail:{source:this.id},
                     bubbles: true,
                     composed: true
                 });
