@@ -1,2 +1,2 @@
-export * from './components/DiscountCoupon';
+export * from './components/ActivationModal';
 export * from './components/SocialProof';
