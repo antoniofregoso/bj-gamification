@@ -7,13 +7,13 @@ export class SocialProof extends AppElement {
 
     #default = {
         position:"top-right",
-        type:'',
+        items:5,
         dismissible:false,
         duration:3000,
         animateIn:"backInUp",
         animateOut:"backOutRight" ,
         visitors:{
-            type:'',
+            border:'',
             color:"has-text-white",
             background:"has-background-info-dark",
             text:{
@@ -22,7 +22,7 @@ export class SocialProof extends AppElement {
                 fr:"visiteurs font des achats en ligne."
                 }
         },
-        purchase:{
+        sale:{
             color:"has-text-white",
             background:"has-background-warning-dark",
             text:{
@@ -85,11 +85,17 @@ export class SocialProof extends AppElement {
         this.state =this.initState(this.#default,props);
         this.setStyles();
     }
-
-
-
     #getProof(src){
-        fetch(src)
+        const payload = {
+            items : 5
+          }
+        fetch(src, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Error when making the request');
@@ -98,10 +104,10 @@ export class SocialProof extends AppElement {
             })
             .then(data => {
                 this.state.items = [];
-                data.forEach(proof => {                    
+                data.result.forEach(proof => {         
                     let indicator = '';
                     let content = '';
-                    let type = '';
+                    let border = '';
                     let color = '';
                     let background = ''
                     let when = this.#getDT(proof.delta);
@@ -109,43 +115,42 @@ export class SocialProof extends AppElement {
                         indicator = icon(faCartPlus, {classes: [this.state.visitors.color]}).html[0];
                         content = `<p><b>${proof.count} </b>${this.state.visitors.text[this.state.context.lang]}<p>                                    
                                     <h3>${this.#getDT(proof.delta)}</h3>`
-                        type = this.state.visitors.type;
+                        border = this.state.visitors.border;
                         color = this.state.visitors.color;
                         background = this.state.visitors.background;
-                    }else if (proof.type==='purchase'){
-                        indicator = icon(faTruck, {classes: [this.state.purchase.color]}).html[0];
+                    }else if (proof.type==='sale'){
+                        indicator = icon(faTruck, {classes: [this.state.sale.color]}).html[0];
                         content = `
-                            <h1>${this.state.purchase.text[this.state.context.lang]} <b>${proof.place}</b> ${this.state.purchase.text2[this.state.context.lang]}</h1>
+                            <h1>${this.state.sale.text[this.state.context.lang]} <b>${proof.place}</b> ${this.state.sale.text2[this.state.context.lang]}</h1>
                             <h2>${proof.count} <b>${proof.name}.</b></h2>
                             <h3>${when}</h3>
                         `
-                        type = this.state.purchase.type;
-                        color = this.state.purchase.color;
-                        background = this.state.purchase.background;
+                        border = this.state.sale.border;
+                        color = this.state.sale.color;
+                        background = this.state.sale.background;
                     }else if (proof.type==='webinar'){
                         indicator = `<p>${proof.count}<p>`;
                         content = `<p>People ${proof.name}<p>
                             <h3>${this.#getDT(proof.delta)}</h3>`
-                        type = this.state.webinar.type;
+                        border = this.state.webinar.border;
                         color = this.state.webinar.color;
                         background = this.state.webinar.background;
                     }else if (proof.type==='course'){
                         indicator = `<p>${proof.count}<p>`;
                         content = `<p>People registered for this course.<p>
                             <h3>${this.#getDT(proof.delta)}</h3>`
-                        type = this.state.course.type;
+                        border = this.state.course.border;
                         color = this.state.course.color;
                         background = this.state.course.background;
                     }else if (proof.type==='event'){
                         indicator = `<p>${proof.count}<p>`;
                         content = `<p>People registered for this sevent.<p>
                             <h3>${this.#getDT(proof.delta)}</h3>`
-                        type = this.state.event.type;
+                        border = this.state.event.border;
                         color = this.state.event.color;
                         background = this.state.event.background;
                     }
-                    let message = /*html*/`
-                    <div class="social-proof">
+                    let message = /*html*/`<div class="social-proof">
                         <div class="social-proof-indicator ${color} ${background}">
                             ${indicator}
                         </div>
@@ -154,7 +159,7 @@ export class SocialProof extends AppElement {
                         </div>
                     </div>
                     `
-                    this.state.items.push(message);                   
+                    this.state.items.push({message:message, border:border});              
                 });
               })
               .catch(error => {
@@ -174,13 +179,13 @@ export class SocialProof extends AppElement {
 
     showToast(){
         if (this.state.items.length>0){
-            let message = this.state.items.shift();
+            let socialProof = this.state.items.shift();
             toast({
                 duration:3000,
-                type:this.state.type,
+                type:socialProof.border,
                 position:this.state.position,
                 dismissible:this.state.dismissible,
-                message: message,
+                message: socialProof.message,
                 extraClasses: 'social-proof-wrapper',
                 animate: { in: this.state.animateIn, out: this.state.animateOut },
                 });
