@@ -8,14 +8,12 @@ export class SocialProof extends AppElement {
     #default = {
         position:"top-right",
         items:5,
+        color:"has-text-dark",
         dismissible:false,
-        duration:3000,
+        duration:6000,
         animateIn:"backInUp",
         animateOut:"backOutRight" ,
         visitors:{
-            border:'',
-            color:"has-text-white",
-            background:"has-background-info-dark",
             text:{
                 es:"visitantes están comprando en línea.",
                 en:"visitors are buying online.",
@@ -23,55 +21,41 @@ export class SocialProof extends AppElement {
                 }
         },
         sale:{
-            color:"has-text-white",
-            background:"has-background-warning-dark",
             text:{
-                es:"En",
-                en:"At",
-                fr:"Chez"
+                es:"de",
+                en:"from",
+                fr:"de"
                 },
             text2:{
-                es:"compraron:",
-                en:"they bought:",
-                fr:", ils ont acheté:"
+                es:"acaba de comprar",
+                en:"just bought",
+                fr:"je viens d'acheter"
                 }
             
         },
-        event:{
-            color:"has-text-white",
-            background:"has-background-primary-dark"
-        },
-        webinar:{
-            color:"has-text-white",
-            background:"has-background-danger-dark"
-        },
-        course:{
-            color:"has-text-white",
-            background:"has-background-link-dark"
-        },
         m:{
-            es:"Hace un minuto.",
-            en:"A minute ago.",
-            fr:"Il y'a une minute."
+            es:"hace un minuto.",
+            en:"a minute ago.",
+            fr:"il y'a une minute."
         },
         ms:{
-            es:"Hace {} minutos.",
+            es:"hace {} minutos.",
             en:"{} minutes ago.",
-            fr:"Cela fait {} minutes."},
+            fr:"cela fait {} minutes."},
         h:{
-            es:"Hace una hora.",
-            en:"An hour ago.",
-            fr:"Il y a une heure."},
+            es:"hace una hora.",
+            en:"an hour ago.",
+            fr:"il y a une heure."},
         hs:{
-            es:"Hace {} horas.",
+            es:"hace {} horas.",
             en:"{} hours ago.",
             fr:"il y a {} heures."},
         d:{
-            es:"Hace un día.",
-            en:"A day ago.",
-            fr:"Il y a un jour."},
+            es:"hace un día.",
+            en:"a day ago.",
+            fr:"il y a un jour."},
         ds:{
-            es:"Hace {} días.",
+            es:"hace {} días.",
             en:"{} days ago.",
             fr:"il y a {} jours."},
         items : [],
@@ -83,7 +67,6 @@ export class SocialProof extends AppElement {
     constructor(props={}){
         super();
         this.state =this.initState(this.#default,props);
-        this.setStyles();
     }
     #getProof(src){
         const payload = {
@@ -111,54 +94,24 @@ export class SocialProof extends AppElement {
                     let color = '';
                     let background = ''
                     let when = this.#getDT(proof.delta);
-                    if (proof.type==='visitors'){
-                        indicator = icon(faCartPlus, {classes: [this.state.visitors.color]}).html[0];
-                        content = `<p><b>${proof.count} </b>${this.state.visitors.text[this.state.context.lang]}<p>                                    
-                                    <h3>${this.#getDT(proof.delta)}</h3>`
-                        border = this.state.visitors.border;
-                        color = this.state.visitors.color;
-                        background = this.state.visitors.background;
-                    }else if (proof.type==='sale'){
-                        indicator = icon(faTruck, {classes: [this.state.sale.color]}).html[0];
-                        content = `
-                            <h1>${this.state.sale.text[this.state.context.lang]} <b>${proof.place}</b> ${this.state.sale.text2[this.state.context.lang]}</h1>
-                            <h2>${proof.count} <b>${proof.name}.</b></h2>
-                            <h3>${when}</h3>
-                        `
-                        border = this.state.sale.border;
-                        color = this.state.sale.color;
-                        background = this.state.sale.background;
-                    }else if (proof.type==='webinar'){
-                        indicator = `<p>${proof.count}<p>`;
-                        content = `<p>People ${proof.name}<p>
-                            <h3>${this.#getDT(proof.delta)}</h3>`
-                        border = this.state.webinar.border;
-                        color = this.state.webinar.color;
-                        background = this.state.webinar.background;
-                    }else if (proof.type==='course'){
-                        indicator = `<p>${proof.count}<p>`;
-                        content = `<p>People registered for this course.<p>
-                            <h3>${this.#getDT(proof.delta)}</h3>`
-                        border = this.state.course.border;
-                        color = this.state.course.color;
-                        background = this.state.course.background;
-                    }else if (proof.type==='event'){
-                        indicator = `<p>${proof.count}<p>`;
-                        content = `<p>People registered for this sevent.<p>
-                            <h3>${this.#getDT(proof.delta)}</h3>`
-                        border = this.state.event.border;
-                        color = this.state.event.color;
-                        background = this.state.event.background;
+                    switch (proof.type ){
+                        case 'visitors':
+                            indicator = icon(faCartPlus, {classes: ['is-size-2', 'mt-3']}).html[0];
+                            content = `<div class="column is-one-fifth has-text-centered">${indicator}</div>
+                                        <div class="column has-text-left is-size-5">
+                                        <p style="position: absolute; top: 12px; left: 85px; font-size: smaller;"><b>${proof.count}</b> ${this.state.visitors.text[this.state.context.lang]}</p>
+                                        </div>`;
+                            border = this.state.visitors.border;
+                            break;
+                        case 'sale':
+                            content =`<div class="column is-one-fifth"><figure class="image is-64x64"><img src="${proof.image}" /></figure></div>
+                                    <div class="column has-text-left">
+                                    <p style="position: absolute; top: 10px; left: 75px; font-size: smaller;"><b>${proof.name}</b> ${this.state.sale.text[this.state.context.lang]} ${proof.state}, ${proof.country} ${this.state.sale.text2[this.state.context.lang]} <b>${proof.count} ${proof.product}</b> ${when}</p>
+                                    </div>`;
+                            border = this.state.sale.border;
+                            break;
                     }
-                    let message = /*html*/`<div class="social-proof">
-                        <div class="social-proof-indicator ${color} ${background}">
-                            ${indicator}
-                        </div>
-                        <div class="social-proof-content has-text-dark has-background-light">
-                            ${content}
-                        </div>
-                    </div>
-                    `
+                    let message = /*html*/`<div class="columns is-gapless has-background-light ${this.state.color}" style="width:350px; height: 64px;">${content}</div>`;
                     this.state.items.push({message:message, border:border});              
                 });
               })
@@ -181,12 +134,12 @@ export class SocialProof extends AppElement {
         if (this.state.items.length>0){
             let socialProof = this.state.items.shift();
             toast({
-                duration:3000,
+                duration:this.state.duration,
+                extraClasses:["p-1"],
                 type:socialProof.border,
                 position:this.state.position,
                 dismissible:this.state.dismissible,
                 message: socialProof.message,
-                extraClasses: 'social-proof-wrapper',
                 animate: { in: this.state.animateIn, out: this.state.animateOut },
                 });
         }
@@ -204,38 +157,18 @@ export class SocialProof extends AppElement {
             if (delta == 60){
                 message = this.state.h[this.state.context.lang]
             }else{
-                message = this.state.hs[this.state.context.lang].replace("{}", delta);
+                message = this.state.hs[this.state.context.lang].replace("{}", parseInt(delta/60));
             }
         }else{
             if (delta == 1440){
                 message = this.state.d[this.state.context.lang]
             }else{
-                message = this.state.ds[this.state.context.lang].replace("{}", delta);
+                message = this.state.ds[this.state.context.lang].replace("{}", parseInt(delta/1440));
             }
         }
         return message;
     }
 
-   
-    socialProofStyles = /* css */ `
-    .social-proof-wrapper {padding: 0.25rem !important;box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;}
-    .social-proof { display:flex; width: 250px;}
-    .social-proof-indicator { display: inline-flex; flex-direction: column; align-items: flex-start; width: 50px; height: 50px;  display: inline-flex; flex-direction: column; align-items: flex-start}
-    .social-proof-indicator img { width: 48px; height: 48px; }
-    .social-proof-indicator svg { margin: auto auto; display: block;}
-    .social-proof-indicator p { font-size: 20; font-weight: bold; margin: auto; padding-top: 15px; }
-    .social-proof-content { flex-grow: 1; display: inline-flex; flex-direction: column; align-items: flex-start; height: 50px; padding-left: 5px; width:200px;}
-    .social-proof-content h1 {font-size: 12px;}
-    .social-proof-content h2 {font-size: 10px;}
-    .social-proof-content h3 {font-size: 9px; text-align:right;}
-    .social-proof-content p { padding-left: 5px; padding-top: 5px; font-size: 14px;}
-        `;
-
-    setStyles(){
-        var socialProofStyles = document.createElement('style');
-        socialProofStyles.innerText = this.socialProofStyles;
-        document.head.appendChild(socialProofStyles)
-    }
      
 
     render(){
